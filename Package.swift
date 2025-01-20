@@ -4,15 +4,15 @@
 import PackageDescription
 
 let package = Package(
-    name: "OpenAI",
+    name: "OpenAIFirebase",
     products: [
         .library(
-            name: "OpenAI",
-            targets: ["OpenAI"]),
+            name: "OpenAIFirebase",
+            targets: ["OpenAIFirebase"]),
     ],
     targets: [
         .target(
-            name: "OpenAI",
+            name: "OpenAIFirebase",
             dependencies: [])
     ]
 )
