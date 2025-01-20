@@ -13,9 +13,6 @@ let package = Package(
     targets: [
         .target(
             name: "OpenAI",
-            dependencies: []),
-        .testTarget(
-            name: "OpenAITests",
-            dependencies: ["OpenAI"]),
+            dependencies: [])
     ]
 )
