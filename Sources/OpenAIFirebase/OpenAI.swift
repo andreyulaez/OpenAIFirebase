@@ -6,7 +6,7 @@ final public class OpenAI: OpenAIProtocol {
         case firebase(FirebaseConfiguration)
         case supabase(SupabaseConfiguration)
         
-        var tokenFactory: (_ completion: @escaping (String) -> Void) -> Void {
+        public var tokenFactory: (_ completion: @escaping (String) -> Void) -> Void {
             switch self {
             case .firebase(let config):
                 config.tokenFactory
@@ -15,7 +15,7 @@ final public class OpenAI: OpenAIProtocol {
             }
         }
         
-        var baseUrl: String {
+        public var baseUrl: String {
             switch self {
             case .firebase(let config):
                 config.baseUrl
@@ -24,7 +24,7 @@ final public class OpenAI: OpenAIProtocol {
             }
         }
         
-        var timeoutInterval: TimeInterval {
+        public var timeoutInterval: TimeInterval {
             switch self {
             case .firebase(let config):
                 config.timeoutInterval
@@ -83,20 +83,12 @@ final public class OpenAI: OpenAIProtocol {
     
     public let configuration: Configuration
     
-    public convenience init(configuration: FirebaseConfiguration) {
-        self.init(configuration: .firebase(configuration), session: URLSession.shared)
+    public convenience init(configuration: Configuration) {
+        self.init(configuration: configuration, session: URLSession.shared)
     }
     
-    public convenience init(configuration: FirebaseConfiguration, session: URLSession = URLSession.shared) {
-        self.init(configuration: .firebase(configuration), session: session as URLSessionProtocol)
-    }
-    
-    public convenience init(configuration: SupabaseConfiguration) {
-        self.init(configuration: .supabase(configuration), session: URLSession.shared)
-    }
-    
-    public convenience init(configuration: SupabaseConfiguration, session: URLSession = URLSession.shared) {
-        self.init(configuration: .supabase(configuration), session: session as URLSessionProtocol)
+    public convenience init(configuration: Configuration, session: URLSession = URLSession.shared) {
+        self.init(configuration: configuration, session: session as URLSessionProtocol)
     }
 
     init(configuration: Configuration, session: URLSessionProtocol) {
