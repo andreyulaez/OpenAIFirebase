@@ -1,8 +1,40 @@
 import Foundation
 
 final public class OpenAI: OpenAIProtocol {
+    
+    public enum Configuration {
+        case firebase(FirebaseConfiguration)
+        case supabase(SupabaseConfiguration)
+        
+        var tokenFactory: (_ completion: @escaping (String) -> Void) -> Void {
+            switch self {
+            case .firebase(let config):
+                config.tokenFactory
+            case .supabase(let config):
+                config.tokenFactory
+            }
+        }
+        
+        var baseUrl: String {
+            switch self {
+            case .firebase(let config):
+                config.baseUrl
+            case .supabase(let config):
+                config.baseUrl
+            }
+        }
+        
+        var timeoutInterval: TimeInterval {
+            switch self {
+            case .firebase(let config):
+                config.timeoutInterval
+            case .supabase(let config):
+                config.timeoutInterval
+            }
+        }
+    }
 
-    public struct Configuration {
+    public struct FirebaseConfiguration {
         
         /// AppCheck token
         public let tokenFactory: (_ completion: @escaping (String) -> Void) -> Void
@@ -24,30 +56,71 @@ final public class OpenAI: OpenAIProtocol {
         }
     }
     
+    public struct SupabaseConfiguration {
+        
+        /// Bearer token
+        public let tokenFactory: (_ completion: @escaping (String) -> Void) -> Void
+        
+        /// Supabase edge functions base url
+        public let baseUrl: String
+        
+        /// Default request timeout
+        public let timeoutInterval: TimeInterval
+        
+        public init(
+            tokenFactory: @escaping (_ completion: @escaping (String) -> Void) -> Void,
+            baseUrl: String,
+            timeoutInterval: TimeInterval = 60.0
+        ) {
+            self.tokenFactory = tokenFactory
+            self.baseUrl = baseUrl
+            self.timeoutInterval = timeoutInterval
+        }
+    }
+    
     private let session: URLSessionProtocol
     private var streamingSessions = ArrayWithThreadSafety<NSObject>()
     
     public let configuration: Configuration
     
-    public convenience init(configuration: Configuration) {
-        self.init(configuration: configuration, session: URLSession.shared)
+    public convenience init(configuration: FirebaseConfiguration) {
+        self.init(configuration: .firebase(configuration), session: URLSession.shared)
+    }
+    
+    public convenience init(configuration: FirebaseConfiguration, session: URLSession = URLSession.shared) {
+        self.init(configuration: .firebase(configuration), session: session as URLSessionProtocol)
+    }
+    
+    public convenience init(configuration: SupabaseConfiguration) {
+        self.init(configuration: .supabase(configuration), session: URLSession.shared)
+    }
+    
+    public convenience init(configuration: SupabaseConfiguration, session: URLSession = URLSession.shared) {
+        self.init(configuration: .supabase(configuration), session: session as URLSessionProtocol)
     }
 
     init(configuration: Configuration, session: URLSessionProtocol) {
         self.configuration = configuration
         self.session = session
     }
-
-    public convenience init(configuration: Configuration, session: URLSession = URLSession.shared) {
-        self.init(configuration: configuration, session: session as URLSessionProtocol)
-    }
     
     public func chats(query: ChatQuery, completion: @escaping (Result<ChatResult, Error>) -> Void) {
-        performRequest(request: FirebaseRequest<ChatResult>(body: query, url: buildURL(path: "/chat")), completion: completion)
+        switch configuration {
+        case .firebase(_):
+            performRequest(request: FirebaseRequest<ChatResult>(body: query, url: buildURL(path: "/chat")), completion: completion)
+        case .supabase(_):
+            performRequest(request: SupabaseRequest<ChatResult>(body: query, url: buildURL(path: "/chat")), completion: completion)
+        }
     }
     
     public func chatsStream(query: ChatQuery, onResult: @escaping (Result<ChatStreamResult, Error>) -> Void, completion: ((Error?) -> Void)?) {
-        performStreamingRequest(request: FirebaseRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: "/chat")), onResult: onResult, completion: completion)
+        switch configuration {
+        case .firebase(_):
+            performStreamingRequest(request: FirebaseRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: "/chat")), onResult: onResult, completion: completion)
+        case .supabase(_):
+            performStreamingRequest(request: SupabaseRequest<ChatStreamResult>(body: query.makeStreamable(), url: buildURL(path: "/chat")), onResult: onResult, completion: completion)
+        }
+        
     }
 }
 
