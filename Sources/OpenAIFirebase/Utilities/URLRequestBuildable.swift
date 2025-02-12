@@ -7,5 +7,5 @@ protocol URLRequestBuildable {
     
     associatedtype ResultType
     
-    func build(token: String?, timeoutInterval: TimeInterval) throws -> URLRequest
+    func build(token: String?, timeoutInterval: TimeInterval, data: [String: Any]?) throws -> URLRequest
 }
